@@ -35,6 +35,12 @@ Built with HTML, Bootstrap, jQuery and the JPDB REST API — no separate backend
 1. Enter Roll No `101` → new student → fill details → **Save**.
 2. Enter Roll No `101` again → details load → edit Class → **Update**.
 
+## How to Run
+1. Log in at login2explore.com/jpdb and copy your connection token.
+2. Paste it into `connToken` in `index.html` (do **not** commit a real token to a public repo).
+3. Open `index.html` directly in a browser. The JPDB API is plain `http`, so a page served over
+   `https` (e.g. GitHub Pages) will have its requests blocked as mixed content.
+
 ## Project Status
 Completed (v1.0). Possible next steps: delete record, list all students, search by name.
 
@@ -43,4 +49,5 @@ Completed (v1.0). Possible next steps: delete record, list all students, search 
 - Login2Xplore micro-internship lectures
 
 ## Release History
+- **v1.1** — Show JPDB errors instead of false success messages; handle failed lookups.
 - **v1.0** — Initial release: Save, Update, Reset with field validation.
