@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Enrollment Form | JsonPowerDB</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
+  <!-- Login2Xplore helper library: builds JPDB request JSON and sends it -->
+  <script src="https://login2explore.com/jpdb/resources/js/0.0.3/jpdb-commons.js"></script>
+  <style>
+    body { background: #f4f6f9; }
+    .panel { margin-top: 40px; }
+    .panel-heading h3 { margin: 0; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="panel panel-primary">
+    <div class="panel-heading"><h3>Student Enrollment Form</h3></div>
+    <div class="panel-body">
+      <form id="stuForm" class="form-horizontal" onsubmit="return false;">
+        <div class="form-group">
+          <label class="col-sm-3 control-label" for="rollNo">Roll No</label>
+          <div class="col-sm-6"><input type="text" class="form-control" id="rollNo" placeholder="Enter Roll No"></div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-3 control-label" for="fullName">Full Name</label>
+          <div class="col-sm-6"><input type="text" class="form-control" id="fullName" placeholder="Full Name"></div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-3 control-label" for="stuClass">Class</label>
+          <div class="col-sm-6"><input type="text" class="form-control" id="stuClass" placeholder="Class"></div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-3 control-label" for="birthDate">Birth Date</label>
+          <div class="col-sm-6"><input type="date" class="form-control" id="birthDate"></div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-3 control-label" for="address">Address</label>
+          <div class="col-sm-6"><textarea class="form-control" id="address" rows="2" placeholder="Address"></textarea></div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-3 control-label" for="enrollDate">Enrollment Date</label>
+          <div class="col-sm-6"><input type="date" class="form-control" id="enrollDate"></div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-3 col-sm-6">
+            <button type="button" class="btn btn-success" id="saveBtn" onclick="saveData()">Save</button>
+            <button type="button" class="btn btn-primary" id="updateBtn" onclick="updateData()">Update</button>
+            <button type="button" class="btn btn-default" id="resetBtn" onclick="resetForm()">Reset</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== JsonPowerDB config =====
+  // Paste YOUR connection token from the JPDB dashboard (login2explore.com/jpdb).
+  var connToken = "PASTE_YOUR_CONNECTION_TOKEN_HERE";
+  var jpdbBaseURL = "http://api.login2explore.com:5577";
+  var jpdbIML = "/api/iml";   // Index Manipulation Language: PUT / UPDATE / REMOVE
+  var jpdbIRL = "/api/irl";   // Index Retrieval Language: GET_BY_KEY etc.
+  var dbName = "SCHOOL-DB";
+  var relName = "STUDENT-TABLE";
+
+  var dataFields = ["#fullName", "#stuClass", "#birthDate", "#address", "#enrollDate"];
+
+  // Initial state: only Roll No enabled, all buttons disabled, cursor on Roll No.
+  function resetForm() {
+    $("#stuForm")[0].reset();
+    $("#rollNo").prop("disabled", false);
+    $(dataFields.join(",")).prop("disabled", true);
+    $("#saveBtn, #updateBtn, #resetBtn").prop("disabled", true);
+    localStorage.removeItem("recNo");
+    $("#rollNo").focus();
+  }
+
+  function getRollNoAsJsonObj() {
+    return JSON.stringify({ rollNo: $("#rollNo").val().trim() });
+  }
+
+  // Store JPDB record number so UPDATE knows which record to change.
+  function saveRecNo(jsonObj) {
+    var lvData = JSON.parse(jsonObj.data);
+    localStorage.setItem("recNo", lvData.rec_no);
+  }
+
+  function fillData(jsonObj) {
+    saveRecNo(jsonObj);
+    var record = JSON.parse(jsonObj.data).record;
+    $("#fullName").val(record.fullName);
+    $("#stuClass").val(record.stuClass);
+    $("#birthDate").val(record.birthDate);
+    $("#address").val(record.address);
+    $("#enrollDate").val(record.enrollDate);
+  }
+
+  // Runs when user leaves the Roll No field.
+  function getStudent() {
+    if ($("#rollNo").val().trim() === "") return;
+    var getReq = createGET_BY_KEYRequest(connToken, dbName, relName, getRollNoAsJsonObj());
+    jQuery.ajaxSetup({ async: false });
+    var resJsonObj = executeCommandAtGivenBaseUrl(getReq, jpdbBaseURL, jpdbIRL);
+    jQuery.ajaxSetup({ async: true });
+
+    $(dataFields.join(",")).prop("disabled", false);
+    $("#resetBtn").prop("disabled", false);
+
+    if (resJsonObj.status === 400) {
+      // New roll no -> allow Save
+      $("#saveBtn").prop("disabled", false);
+      $("#updateBtn").prop("disabled", true);
+      $("#fullName").focus();
+    } else if (resJsonObj.status === 200) {
+      // Existing roll no -> show data, allow Update, lock primary key
+      $("#rollNo").prop("disabled", true);
+      fillData(resJsonObj);
+      $("#saveBtn").prop("disabled", true);
+      $("#updateBtn").prop("disabled", false);
+      $("#fullName").focus();
+    }
+  }
+
+  // Validate every field; returns JSON string or "" if invalid.
+  function validateData() {
+    var data = {
+      rollNo: $("#rollNo").val().trim(),
+      fullName: $("#fullName").val().trim(),
+      stuClass: $("#stuClass").val().trim(),
+      birthDate: $("#birthDate").val(),
+      address: $("#address").val().trim(),
+      enrollDate: $("#enrollDate").val()
+    };
+    var ids = { rollNo: "#rollNo", fullName: "#fullName", stuClass: "#stuClass",
+                birthDate: "#birthDate", address: "#address", enrollDate: "#enrollDate" };
+    for (var key in data) {
+      if (data[key] === "") {
+        alert(key + " is required");
+        $(ids[key]).focus();
+        return "";
+      }
+    }
+    return JSON.stringify(data);
+  }
+
+  function saveData() {
+    var jsonStr = validateData();
+    if (jsonStr === "") return;
+    var putReq = createPUTRequest(connToken, jsonStr, dbName, relName);
+    jQuery.ajaxSetup({ async: false });
+    executeCommandAtGivenBaseUrl(putReq, jpdbBaseURL, jpdbIML);
+    jQuery.ajaxSetup({ async: true });
+    alert("Student saved");
+    resetForm();
+  }
+
+  function updateData() {
+    var jsonStr = validateData();
+    if (jsonStr === "") return;
+    var updReq = createUPDATERecordRequest(connToken, jsonStr, dbName, relName, localStorage.getItem("recNo"));
+    jQuery.ajaxSetup({ async: false });
+    executeCommandAtGivenBaseUrl(updReq, jpdbBaseURL, jpdbIML);
+    jQuery.ajaxSetup({ async: true });
+    alert("Student updated");
+    resetForm();
+  }
+
+  $(function () {
+    $("#rollNo").on("blur", getStudent);
+    resetForm();
+  });
+</script>
+</body>
+</html>
