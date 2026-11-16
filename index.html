@@ -152,10 +152,14 @@
     if (jsonStr === "") return;
     var putReq = createPUTRequest(connToken, jsonStr, dbName, relName);
     jQuery.ajaxSetup({ async: false });
-    executeCommandAtGivenBaseUrl(putReq, jpdbBaseURL, jpdbIML);
+    var resJsonObj = executeCommandAtGivenBaseUrl(putReq, jpdbBaseURL, jpdbIML);
     jQuery.ajaxSetup({ async: true });
-    alert("Student saved");
-    resetForm();
+    if (resJsonObj && resJsonObj.status === 200) {
+      alert("Student saved");
+      resetForm();
+    } else {
+      alert("Save failed: " + (resJsonObj ? resJsonObj.message : "no response from JPDB"));
+    }
   }
 
   function updateData() {
@@ -163,10 +167,14 @@
     if (jsonStr === "") return;
     var updReq = createUPDATERecordRequest(connToken, jsonStr, dbName, relName, localStorage.getItem("recNo"));
     jQuery.ajaxSetup({ async: false });
-    executeCommandAtGivenBaseUrl(updReq, jpdbBaseURL, jpdbIML);
+    var resJsonObj = executeCommandAtGivenBaseUrl(updReq, jpdbBaseURL, jpdbIML);
     jQuery.ajaxSetup({ async: true });
-    alert("Student updated");
-    resetForm();
+    if (resJsonObj && resJsonObj.status === 200) {
+      alert("Student updated");
+      resetForm();
+    } else {
+      alert("Update failed: " + (resJsonObj ? resJsonObj.message : "no response from JPDB"));
+    }
   }
 
   $(function () {
