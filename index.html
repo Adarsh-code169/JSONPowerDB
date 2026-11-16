@@ -107,6 +107,12 @@
     var resJsonObj = executeCommandAtGivenBaseUrl(getReq, jpdbBaseURL, jpdbIRL);
     jQuery.ajaxSetup({ async: true });
 
+    // No reply, or a status we don't expect: stop here instead of unlocking the form.
+    if (!resJsonObj || (resJsonObj.status !== 200 && resJsonObj.status !== 400)) {
+      alert("Could not reach JPDB: " + (resJsonObj ? resJsonObj.message : "no response"));
+      return;
+    }
+
     $(dataFields.join(",")).prop("disabled", false);
     $("#resetBtn").prop("disabled", false);
 
