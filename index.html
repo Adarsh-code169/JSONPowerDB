@@ -61,7 +61,7 @@
   // ===== JsonPowerDB config =====
   // Paste YOUR connection token from the JPDB dashboard (login2explore.com/jpdb).
   var connToken = "PASTE_YOUR_CONNECTION_TOKEN_HERE";
-  var jpdbBaseURL = "http://api.login2explore.com:5577";
+  var jpdbBaseURL = "https://api.login2explore.com:5577";
   var jpdbIML = "/api/iml";   // Index Manipulation Language: PUT / UPDATE / REMOVE
   var jpdbIRL = "/api/irl";   // Index Retrieval Language: GET_BY_KEY etc.
   var dbName = "SCHOOL-DB";
@@ -109,7 +109,7 @@
 
     // No reply, or a status we don't expect: stop here instead of unlocking the form.
     if (!resJsonObj || (resJsonObj.status !== 200 && resJsonObj.status !== 400)) {
-      alert("Could not reach JPDB: " + (resJsonObj ? resJsonObj.message : "no response"));
+      alert("JPDB error: " + (resJsonObj ? resJsonObj.message : "no response"));
       return;
     }
 

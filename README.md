@@ -38,8 +38,10 @@ Built with HTML, Bootstrap, jQuery and the JPDB REST API — no separate backend
 ## How to Run
 1. Log in at login2explore.com/jpdb and copy your connection token.
 2. Paste it into `connToken` in `index.html` (do **not** commit a real token to a public repo).
-3. Open `index.html` directly in a browser. The JPDB API is plain `http`, so a page served over
-   `https` (e.g. GitHub Pages) will have its requests blocked as mixed content.
+3. Open `index.html` in a browser (or run `python3 -m http.server 8000` and visit localhost:8000).
+
+Note: the JPDB API and login page are now served over **https** on port 5577
+(`https://api.login2explore.com:5577`); the old `http://` URL no longer works.
 
 ## Project Status
 Completed (v1.0). Possible next steps: delete record, list all students, search by name.
